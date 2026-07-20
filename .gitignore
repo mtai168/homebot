@@ -1,0 +1,19 @@
+# 資料（不進 git，每人一份）
+data.json
+transactions.jsonl
+chat_ids.json
+homebox.json
+
+# 環境變數（含真實 token）
+.env
+
+# Python 快取
+__pycache__/
+*.pyc
+*.pyo
+
+# 系統
+*.swp
+*.swo
+*~
+.DS_Store

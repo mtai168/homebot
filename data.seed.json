@@ -1,0 +1,20 @@
+{
+  "_comment": "HomeBox 初始預置 — 僅首次部署且 data.json 不存在時使用，絕不覆蓋既有資料",
+  "items": [
+    {
+      "id": 1,
+      "name": "空氣",
+      "category": "日常用品",
+      "alert_threshold": 0,
+      "locations": [
+        {"name": "儲藏室", "quantity": 1}
+      ],
+      "total": 1,
+      "created_at": "2026-07-15T00:00:00+08:00",
+      "updated_at": "2026-07-15T00:00:00+08:00"
+    }
+  ],
+  "categories": ["日常用品"],
+  "locations_index": ["儲藏室"],
+  "next_id": 2
+}
