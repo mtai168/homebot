@@ -46,6 +46,11 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# Avoid leaking Telegram bot tokens through HTTP request URLs in logs.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext").setLevel(logging.INFO)
+
 # 分類 emoji 對照
 CATEGORY_EMOJI = {
     "沐浴類": "🛁",
