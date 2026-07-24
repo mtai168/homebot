@@ -12,7 +12,6 @@ HomeBox 是一個給家庭或小團隊使用的 Telegram 庫存管理 bot。它�
 - 低庫存告警：列出低於告警值的物品
 - 交易紀錄：以 append-only JSONL 保存買入/使用紀錄
 - 定期提醒：可透過 systemd timer 或 cron 發送低庫存提醒
-- 每月 review：可發送每月待處理事項提醒
 
 ## Telegram 指令
 
@@ -71,14 +70,11 @@ BOT_TOKEN=你的 Telegram bot token
 可選：
 
 ```dotenv
-MONTHLY_REVIEW_BOT_TOKEN=
 HOMEBOX_DATA_DIR=/srv/homebox
 HOMEBOX_ENV_FILE=/etc/homebox/.env
 HOMEBOX_LOG_DIR=/var/log/homebox
-HERMES_MEMORY_DIR=/root/.hermes/memory/agents/default
 ```
 
-`MONTHLY_REVIEW_BOT_TOKEN` 若未設定，`monthly_review.py` 會退回使用 `BOT_TOKEN`。
 
 ## 本機開發
 
@@ -102,14 +98,13 @@ python bot.py
 - Log：`/var/log/homebox`
 - 主服務：`homebox-bot.service`
 - 低庫存提醒：`homebox-reminder.timer`
-- 每月 review：`homebox-monthly-review.timer`
 
 常用指令：
 
 ```bash
 systemctl status homebox-bot.service --no-pager
 systemctl restart homebox-bot.service
-systemctl list-timers homebox-reminder.timer homebox-monthly-review.timer --no-pager
+systemctl list-timers homebox-reminder.timer --no-pager
 journalctl -u homebox-bot.service -n 100 --no-pager
 ```
 
