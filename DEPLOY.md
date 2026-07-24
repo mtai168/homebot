@@ -61,16 +61,20 @@ pip install python-telegram-bot==22.6
 你可以從原始來源複製這些檔案，或用 `git clone`（若你有仓库）。
 
 **設定你的 Token**：
-開啟 `bot.py`，找到這一行（約第 20 行）：
-```python
-BOT_TOKEN = "8820618726:***"
-```
-把引號裡的內容換成你在步驟 2 拿到的 token：
-```python
-BOT_TOKEN = "你自己的token貼這裡"
+複製 `.env.example` 成 `.env`，再把你在步驟 2 拿到的 token 填到 `.env`：
+```bash
+cp .env.example .env
+nano .env
 ```
 
-> ⚠️ Token 等同密碼，不要公開給別人，也不要commit到公開仓库。
+`.env` 範例：
+```dotenv
+BOT_TOKEN=你的token貼這裡
+```
+
+程式會從環境變數或 `/root/homebox/.env` 讀取 `BOT_TOKEN`。不要把 token 寫進 `bot.py`、`reminder.py` 或其他 source code。
+
+> ⚠️ Token 等同密碼，不要公開給別人，也不要 commit 到公開倉庫。
 
 ---
 

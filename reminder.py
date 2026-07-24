@@ -13,7 +13,20 @@ from datetime import datetime
 
 import requests
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8820618726:AAGYcv4aOQvFhJCOM7Pybie0KNJnVl2Ry4A")
+def load_env_file(path="/root/homebox/.env"):
+    if not Path(path).exists():
+        return
+    for line in Path(path).read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip(chr(34) + chr(39)))
+
+load_env_file()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN must be set in environment or /root/homebox/.env")
 DATA_FILE = Path("/root/homebox/data.json")
 LOG_FILE = "/var/log/homebox/reminder.log"
 
