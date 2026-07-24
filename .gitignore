@@ -17,3 +17,6 @@ __pycache__/
 *.swo
 *~
 .DS_Store
+
+# Local virtualenv
+.venv/
