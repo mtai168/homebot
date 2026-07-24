@@ -13,10 +13,13 @@ from datetime import datetime
 
 import requests
 
-def load_env_file(path="/root/homebox/.env"):
-    if not Path(path).exists():
+ENV_FILE = Path(os.getenv("HOMEBOX_ENV_FILE", os.path.join(os.getenv("HOMEBOX_DATA_DIR", "/root/homebox"), ".env")))
+
+def load_env_file(path=ENV_FILE):
+    path = Path(path)
+    if not path.exists():
         return
-    for line in Path(path).read_text().splitlines():
+    for line in path.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -26,9 +29,12 @@ def load_env_file(path="/root/homebox/.env"):
 load_env_file()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN must be set in environment or /root/homebox/.env")
-DATA_FILE = Path("/root/homebox/data.json")
-LOG_FILE = "/var/log/homebox/reminder.log"
+    raise RuntimeError(f"BOT_TOKEN must be set in environment or {ENV_FILE}")
+APP_DIR = Path(os.getenv("HOMEBOX_DATA_DIR", "/root/homebox"))
+LOG_DIR = Path(os.getenv("HOMEBOX_LOG_DIR", "/var/log/homebox"))
+DATA_FILE = APP_DIR / "data.json"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = str(LOG_DIR / "reminder.log")
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s",
@@ -42,7 +48,7 @@ log = logging.getLogger(__name__)
 
 # 這裡填入你的 Telegram chat ID
 # 第一次跟 bot 互動後，bot 會印出 chat ID
-CHAT_IDS_FILE = Path("/root/homebox/chat_ids.json")
+CHAT_IDS_FILE = APP_DIR / "chat_ids.json"
 
 
 def load_chat_ids():

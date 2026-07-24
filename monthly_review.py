@@ -4,13 +4,18 @@
 import json, subprocess, pathlib, os, sys
 
 # Read memory for TODO items
-MEMORY_FILE = pathlib.Path("/root/.hermes/memory/agents/default/MEMORY.md")
-TODO_FILE = pathlib.Path("/root/.hermes/memory/agents/default/TODO.md")
+HERMES_MEMORY_DIR = pathlib.Path(os.getenv("HERMES_MEMORY_DIR", "/root/.hermes/memory/agents/default"))
+MEMORY_FILE = HERMES_MEMORY_DIR / "MEMORY.md"
+TODO_FILE = HERMES_MEMORY_DIR / "TODO.md"
 
-def load_env_file(path="/root/homebox/.env"):
-    if not pathlib.Path(path).exists():
+APP_DIR = pathlib.Path(os.getenv("HOMEBOX_DATA_DIR", "/root/homebox"))
+ENV_FILE = pathlib.Path(os.getenv("HOMEBOX_ENV_FILE", str(APP_DIR / ".env")))
+
+def load_env_file(path=ENV_FILE):
+    path = pathlib.Path(path)
+    if not path.exists():
         return
-    for line in pathlib.Path(path).read_text().splitlines():
+    for line in path.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -20,7 +25,7 @@ def load_env_file(path="/root/homebox/.env"):
 load_env_file()
 BOT_TOKEN = os.getenv("MONTHLY_REVIEW_BOT_TOKEN") or os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise RuntimeError("MONTHLY_REVIEW_BOT_TOKEN or BOT_TOKEN must be set in environment or /root/homebox/.env")
+    raise RuntimeError(f"MONTHLY_REVIEW_BOT_TOKEN or BOT_TOKEN must be set in environment or {ENV_FILE}")
 
 def get_chat_id():
     """Get chat ID from bot updates."""
