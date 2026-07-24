@@ -94,7 +94,7 @@ python bot.py
 
 ## systemd 部署
 
-目前在 `geode-sg1` 的服務設計：
+目前的服務設計：
 
 - 使用者：`homebox`
 - App 目錄：`/srv/homebox`
@@ -115,7 +115,7 @@ journalctl -u homebox-bot.service -n 100 --no-pager
 
 ## 備份
 
-在 `geode-sg1`，HomeBox 已被 Borg 備份涵蓋：
+HomeBox 需自行備份，比如開發環境已被 Borg 備份涵蓋：
 
 - `/srv/homebox`
 - `/etc/homebox`
@@ -133,4 +133,3 @@ journalctl -u homebox-bot.service -n 100 --no-pager
 
 - `SPEC-v1.0.0.md`：功能規格
 - `DEPLOY.md`：舊版部署說明
-- `HOMEBOX_MIGRATION_PLAN.md`：在 Geode-Matrix 專案中的搬遷紀錄
