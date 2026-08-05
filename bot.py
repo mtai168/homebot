@@ -1816,7 +1816,10 @@ def main():
                 self._src = src
             async def reply_text(self, *a, **k):
                 await self._src.reply_text(*a, **k)
-        shim = type("Update", (), {"message": _Msg(zh, update.message)})()
+        shim = type("Update", (), {
+            "message": _Msg(zh, update.message),
+            "effective_chat": update.effective_chat,   # 供白名單 is_allowed 使用
+        })()
         await handle_message(shim, context)
 
     for cmd, _, _, _ in COMMANDS:
