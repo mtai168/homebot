@@ -597,6 +597,20 @@ async def handle_rename_location(update, context, data, text):
     save_data(data)
     await update.message.reply_text(f"✅ 已將位置「{old}」改名為「{new}」（影響 {n} 個物品）")
 
+async def _start_rename_item_menu(update, context, data):
+    """選單式改品名：列出所有物品供挑選（callback: renitem_<id>）"""
+    items = data["items"]
+    if not items:
+        await update.message.reply_text("📦 目前沒有物品可改名")
+        return
+    buttons = [(f"{i+1}: {it['name']}", f"renitem_{it['id']}") for i, it in enumerate(items)]
+    buttons.append(("❌ 取消", "cancel_renitem"))
+    await update.message.reply_text(
+        "✏️ 選擇要改名的物品：",
+        reply_markup=make_keyboard(buttons, cols=1)
+    )
+
+
 async def handle_rename_item(update, context, data, text):
     parts = _split_rename(text)
     if not parts:
@@ -680,6 +694,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # 管理指令（非對話態才可用的文字指令，插在最前避免與買/用誤吞）
+    # 純「重命名物品」無參數 → 進入選單式選物品
+    if text.strip() in ("重命名物品", "改物品名"):
+        await _start_rename_item_menu(update, context, data)
+        return
+
     m_admin = re.match(r'^(新增分類|加分類)\s+(.+)$', text)
     if m_admin:
         await handle_add_category(update, context, data, m_admin.group(2).strip())
@@ -1279,6 +1298,22 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # 選單式改品名：選擇要改的物品
+    if cb.startswith("renitem_"):
+        item_id = int(cb.replace("renitem_", ""))
+        item = next((it for it in data["items"] if it["id"] == item_id), None)
+        if not item:
+            await query.edit_message_text("❌ 找不到該物品")
+            return
+        context.user_data["rename_target_id"] = item_id
+        await query.edit_message_text(f"✏️ 「{item['name']}」\n請輸入新的名稱：")
+        return
+
+    if cb == "cancel_renitem":
+        context.user_data.pop("rename_target_id", None)
+        await query.edit_message_text("❌ 已取消改名")
+        return
+
     # 管理指令二次確認（刪除物品/分類/位置）
     if cb in ("confirm_del_item", "cancel_del_item", "confirm_del_category", "cancel_del_category", "confirm_del_location", "cancel_del_location"):
         pending = context.user_data.get("pending_delete")
@@ -1592,6 +1627,32 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     text = update.message.text.strip()
     data = load_data()
+
+    # 選單式改品名：已在改名流程，接收新名稱
+    if context.user_data.get("rename_target_id"):
+        target_id = context.user_data.pop("rename_target_id")
+        new_name = text.strip()
+        item = next((it for it in data["items"] if it["id"] == target_id), None)
+        if not item:
+            await update.message.reply_text("❌ 找不到該物品，請重新操作")
+            return
+        old = item["name"]
+        if new_name == old:
+            await update.message.reply_text("⚠️ 新名稱與舊名稱相同，未做變更")
+            return
+        if get_item_by_exact_name(data, new_name):
+            await update.message.reply_text(f"❌ 「{new_name}」已存在，無法改名")
+            return
+        if "=>" in new_name:
+            # 使用者打了「舊 => 新」，直接解析
+            parts = _split_rename(new_name)
+            if parts:
+                new_name = parts[1]
+        item["name"] = new_name
+        item["updated_at"] = datetime.now().isoformat()
+        save_data(data)
+        await update.message.reply_text(f"✅ 已將物品「{old}」改名為「{new_name}」（歷史紀錄保留舊名）")
+        return
 
     # 等待數量（選位置後輸入數量 — 繼續新增位置用）
     if context.user_data.get("buy_awaiting_loc_quantity"):
