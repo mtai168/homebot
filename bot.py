@@ -128,6 +128,13 @@ def load_chat_ids():
 def save_chat_ids(ids):
     CHAT_IDS_FILE.write_text(json.dumps(ids))
 
+def is_allowed(update) -> bool:
+    """白名單：只允許 chat_ids.json 內的使用者操作。外來者一律無權限。"""
+    allowed = set(load_chat_ids())
+    if not allowed:
+        return True  # 空清單時不阻擋（避免鎖死），但一般都有值
+    return update.effective_chat.id in allowed
+
 def get_item_by_name(data, name):
     """用名稱搜尋物品：先精確比對，再模糊比對"""
     name = name.strip().lower()
@@ -276,9 +283,14 @@ def get_locations_keyboard(data, item_name=None):
 # ─── Bot 指令 ───────────────────────────────────────────
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    # 自動註冊 chat ID
+    # 白名單：只讓已授權者加入；外來者可查詢，但不主動寫入
     ids = load_chat_ids()
     if chat_id not in ids:
+        if not is_allowed(update):
+            await update.message.reply_text(
+                "🔒 您不在 HomeBox 白名單內，無法使用。\n如需使用請聯絡管理員將您的 chat ID 加入白名單。"
+            )
+            return
         ids.append(chat_id)
         save_chat_ids(ids)
         log.info(f"Registered chat_id: {chat_id}")
@@ -655,6 +667,9 @@ async def handle_delete_location_request(update, context, data, name):
 
 # ─── 主訊息處理 ────────────────────────────────────────
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_allowed(update):
+        await update.message.reply_text("🔒 無權限操作 HomeBox（白名單外）")
+        return
     text = update.message.text.strip()
     data = load_data()
 
@@ -1208,6 +1223,9 @@ async def handle_set_alert(update: Update, context, data, item_name, new_thresho
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    if not is_allowed(update):
+        await query.edit_message_text("🔒 無權限操作 HomeBox（白名單外）")
+        return
     data = load_data()
     cb = query.data
 
@@ -1569,6 +1587,9 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ─── 處理純文字輸入（新位置、告警值等）─────────────────
 async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_allowed(update):
+        await update.message.reply_text("🔒 無權限操作 HomeBox（白名單外）")
+        return
     text = update.message.text.strip()
     data = load_data()
 
